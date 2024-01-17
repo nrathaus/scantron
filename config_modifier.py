@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import sys
 
 parser = argparse.ArgumentParser(prog="Config Modifier")
 
@@ -17,9 +18,15 @@ parser.add_argument("-f", "--local_database_password")
 
 args = parser.parse_args()
 
-print(f"{args=}")
+# print(f"{args=}")
 
-json_data = json.load(open("console/scantron_secrets.json", "r", encoding="latin1"))
+try:
+    file_handle = open("console/scantron_secrets.json", "r", encoding="latin1")
+except FileNotFoundError:
+    print("Make sure that 'console/scantron_secrets.json' exists, prior to running this")
+    sys.exit(0)
+
+json_data = json.load(file_handle)
 
 if args.django_super_user_password is not None:
     json_data["django_super_user_password"] = args.django_super_user_password
@@ -44,3 +51,8 @@ if args.production_database_password is not None:
 
 if args.local_database_password is not None:
     json_data["local"]["DATABASE_PASSWORD"] = args.local_database_password
+
+file_handle.close()
+file_handle = open("console/scantron_secrets.json", "w", encoding="latin1")
+
+json.dump(json_data, file_handle, indent=4)
